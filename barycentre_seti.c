@@ -153,7 +153,7 @@ void leftRotatebyOne(float* arr, int sizearr)
     arr[shifti] = temp;
 }
 
-int squeeze(float *arr, int nchans, double fch1, double foff, double velrel)
+float* squeeze(float *arr, int nchans, double fch1, double foff, double velrel,int sqchan)
 {	
    int seqi,seqj,seqk;
    double seqfreq1,seqfreq2;
@@ -164,7 +164,7 @@ int squeeze(float *arr, int nchans, double fch1, double foff, double velrel)
    seqfreq1=(fch1*(1 + velrel))*1000000;
    for(seqj=0;seqj<nchans;seqj++){
         seqfreq2 = ((fch1+(seqj+1)*foff)*(1 + velrel)*1000000); // subsequent channel frequency in barycentric frame
-        if(seqfreq2-seqfreq1<(foff*1000000/2.0)) {
+        if(seqfreq2-seqfreq1<(foff*1000000/2.0 && seqj+1<nchans)) {
         	fch1 = fch1+foff;
 		//If two channels come closer than half of chan, add them
 		seqchanblk[seqk] = (arr[seqj]+arr[seqj+1])/2.0;
@@ -178,7 +178,9 @@ int squeeze(float *arr, int nchans, double fch1, double foff, double velrel)
    }
    //These number should match 
    //fprintf(stderr,"%d %d\n",seqi,seqj-seqk);
-   return seqi;
+   //return seqi;
+   sqchan=seqi;
+   return seqchanblk;
 }
 
 /*Function to right rotate arr[] of size n by d*/
@@ -441,8 +443,9 @@ main (int argc, char *argv[])
 				if(nfreq1-origbaryfch1>foff) {
 					lshift = ceil((nfreq1-origbaryfch1)/foff);
 					leftRotate(chanblk,lshift,nchans);
-					sqchan=squeeze(chanblk, nchans, origfch1, foff, baryval.velrel);
 				}
+				//sqchan=squeeze(chanblk, nchans, origfch1, foff, baryval.velrel);
+				chanblk=squeeze(chanblk, nchans, origfch1, foff, baryval.velrel,sqchan);
 				fprintf(stderr,"At %lf freq diff  %lf Hz shifting by %d channels and squeeze by %d channels\n",baryval.mjdbary,(nfreq1-origbaryfch1)*1000000,lshift,sqchan);
 		}		
 		//leftRotate(rawdata,3*i,sizeof(rawdata));
