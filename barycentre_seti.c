@@ -447,6 +447,10 @@ main (int argc, char *argv[])
 				//sqchan=squeeze(chanblk, nchans, origfch1, foff, baryval.velrel);
 				chanblk=squeeze(chanblk, nchans, origfch1, foff, baryval.velrel,sqchan);
 				fprintf(stderr,"At %lf freq diff  %lf Hz shifting by %d channels and squeeze by %d channels\n",baryval.mjdbary,(nfreq1-origbaryfch1)*1000000,lshift,sqchan);
+		}
+		else{
+			fprintf(stderr,"Positive velocity or foff negative. Not converting");
+			return 0;
 		}		
 		//leftRotate(rawdata,3*i,sizeof(rawdata));
 		for(j=0;j<nchans;j++) fwrite(&chanblk[j],1,sizeof(float),output);
