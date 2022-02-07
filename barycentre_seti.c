@@ -28,6 +28,8 @@
 */
 #include "dedisperse.h"
 #include <string.h>
+#include <stdio.h>
+#include <math.h>
 char polyco_filename[80];
 double fcent;
 
