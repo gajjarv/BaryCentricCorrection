@@ -165,25 +165,25 @@ float* squeeze(float *arr, int nchans, double fch1, double foff, double velrel,i
    seqfreq1=(fch1*(1 + velrel))*1000000;
    for(seqj=0;seqj<nchans;seqj++){
         seqfreq2 = ((fch1+(seqj+1)*foff)*(1 + velrel)*1000000); // subsequent channel frequency in barycentric frame
-        if((fabs(seqfreq2-seqfreq1) < fabs(foff*1000000/2.0)) && (seqj+1<nchans)) {
+        if(((seqfreq2-seqfreq1) < foff*1000000/2.0) && (seqj+1<nchans)) {
         	//fch1 = fch1+foff;
 		//If two channels come closer than half of chan, add them
 		seqchanblk[seqk] = (arr[seqj]+arr[seqj+1])/2.0;
 		seqi+=1;
 		seqk+=1;
-		seqj+=1;
-	}
+                seqj+=1;
+        }
 	else {
 		seqchanblk[seqk] = arr[seqj];	
 		seqk+=1;
 	}		
    	seqfreq1 = seqfreq1+foff*1000000; // Real frquency how they will get organize in the file 
    }
-   fprintf(stderr,"squeeze by %d ",seqi);   
    //These number should match 
    //fprintf(stderr,"%d %d\n",seqi,seqj-seqk);
+   fprintf(stderr,"squeeze by %d ",seqi);
    //return seqi;
-   //sqchan=seqi;
+   sqchan=seqi;
    return seqchanblk;
 }
 
@@ -206,7 +206,7 @@ void rightRotatebyOne(float* arr, int sizearr)
     arr[shifti] = temp;
 }
 
-//To exapand spectra
+//To exapand spectra 
 float* expand(float *arr, int nchans, double fch1, double foff, double velrel,int sqchan)
 {
    int seqi,seqj,seqk;
@@ -216,32 +216,26 @@ float* expand(float *arr, int nchans, double fch1, double foff, double velrel,in
    memset(seqchanblk,0,nchans);
    seqi=seqj=seqk=0;
    seqfreq1=(fch1*(1 + velrel))*1000000;
-   for(seqj=0;seqj<nchans;seqj++){   
+   for(seqj=0;seqj<nchans;seqj++){
         seqfreq2 = ((fch1+(seqj+1)*foff)*(1 + velrel)*1000000); // subsequent channel frequency in barycentric frame
-        if((fabs(seqfreq2-seqfreq1) > 1.5*fabs(foff*1000000)) && (seqj+1<nchans)){
-                //fch1 = fch1+foff;
-                //If two channels are farther apart than twice chan width, use their average
-  		seqchanblk[seqk] = arr[seqj];
-		seqfreq1 = seqfreq1+foff*1000000; // Real frquency how they will get organize in the file
-		seqk+=1;
-  		if(seqk<nchans)	seqchanblk[seqk] = (arr[seqj]+arr[seqj+1])/2.0;
+        if(seqfreq2-seqfreq1>(foff*1000000/2.0) && seqj+1<nchans) {
+                fch1 = fch1+foff;
+                //If two channels come closer than half of chan, add them
+                seqchanblk[seqk] = (arr[seqj]+arr[seqj+1])/2.0;
                 seqi+=1;
-                seqk+=1;
-                //seqj+=1;
         }
         else {
-                if(seqk<nchans) seqchanblk[seqk] = arr[seqj];
+                seqchanblk[seqk] = arr[seqj];
                 seqk+=1;
         }
         seqfreq1 = seqfreq1+foff*1000000; // Real frquency how they will get organize in the file 
    }
-   fprintf(stderr,"expand by %d ",seqi);
    //These number should match 
-   //fprintf(stderr,"%d %d\n",seqi,seqj-seqk);
+   fprintf(stderr,"%d %d\n",seqi,seqj-seqk);
    //return seqi;
-   //sqchan=seqi;
+   sqchan=seqi;
    return seqchanblk;
-} 
+}
 
 
 char inpfile[80], outfile[80];
@@ -481,17 +475,20 @@ main (int argc, char *argv[])
       int sqchan=0;
       for(i=0;i<n;i++){
 	        baryval = barycentric_time(ra,dec,topo,site,mjd);
+		//For testing 
+		//baryval.velrel = baryval.velrel*-1;
+	        //barycentre_time+=tsamp*polyco_period(mjd,polyco);
 		nfreq1 = (origfch1*(1 + baryval.velrel)); //First channel frequency of this spectra
 	        for(j=0;j<nchans;j++) fread(&chanblk[j],1,sizeof(float),input);
+		//rightRotate(chanblk,i,nchans);
 		if(baryval.velrel<0 && foff>0){
-		//if(baryval.velrel<0){
-				if(nfreq1-origbaryfch1>=fabs(foff)) {
-					rshift = ceil((nfreq1-origbaryfch1)/fabs(foff));
+				if(nfreq1-origbaryfch1>=foff) {
+					rshift = ceil((nfreq1-origbaryfch1)/foff);
 					rightRotate(chanblk,rshift,nchans);
 					fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz right shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(nfreq1-origbaryfch1)*1000000,rshift);
 				}
-				if(origbaryfch1-nfreq1>=fabs(foff)){
-					lshift = ceil((origbaryfch1-nfreq1)/fabs(foff));
+				if(origbaryfch1-nfreq1>=foff){
+					lshift = ceil((origbaryfch1-nfreq1)/foff);
 					leftRotate(chanblk,lshift,nchans);
 					fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz left shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(nfreq1-origbaryfch1)*1000000,lshift);
 				}	
@@ -499,45 +496,6 @@ main (int argc, char *argv[])
 				//if(i==0) chanblk=squeeze(chanblk, nchans, origfch1, foff, baryval.velrel,sqchan);
 				chanblk=squeeze(chanblk, nchans, origfch1, foff, baryval.velrel,sqchan);
 		}
-		else if(baryval.velrel<0 && foff<0){
-				if(nfreq1-origbaryfch1>=fabs(foff)) {
-					lshift = ceil((nfreq1-origbaryfch1)/fabs(foff));
-					leftRotate(chanblk,lshift,nchans);
-                                        fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz left shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(nfreq1-origbaryfch1)*1000000,lshift);
-				}	
-				if(origbaryfch1-nfreq1>=fabs(foff)){
-					rshift = ceil((origbaryfch1-nfreq1)/fabs(foff));
-                                        rightRotate(chanblk,rshift,nchans);
-                                        fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz right shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(origbaryfch1-nfreq1)*1000000,rshift);
-				}
-				chanblk=squeeze(chanblk, nchans, origfch1, foff, baryval.velrel,sqchan);	
-		}
-		else if(baryval.velrel>0 && foff<0){
-     				if(nfreq1-origbaryfch1>=fabs(foff)) {
-                                        lshift = ceil((nfreq1-origbaryfch1)/fabs(foff));
-                                        leftRotate(chanblk,lshift,nchans);
-                                        fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz left shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(nfreq1-origbaryfch1)*1000000,lshift);
-                                }
-                                if(origbaryfch1-nfreq1>=fabs(foff)){
-                                        rshift = ceil((origbaryfch1-nfreq1)/fabs(foff));
-                                        rightRotate(chanblk,rshift,nchans);
-                                        fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz right shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(origbaryfch1-nfreq1)*1000000,rshift);
-                                }
-				chanblk=expand(chanblk, nchans, origfch1, foff, baryval.velrel,sqchan);
-		}
-		else if(baryval.velrel>0 && foff>0){	
-				if(nfreq1-origbaryfch1>=fabs(foff)) {
-                                        rshift = ceil((nfreq1-origbaryfch1)/fabs(foff));
-                                        rightRotate(chanblk,rshift,nchans);
-                                        fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz right shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(nfreq1-origbaryfch1)*1000000,rshift);
-                                }
-                                if(origbaryfch1-nfreq1>=fabs(foff)){
-                                        lshift = ceil((origbaryfch1-nfreq1)/fabs(foff));
-                                        leftRotate(chanblk,lshift,nchans);
-                                        fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz left shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(nfreq1-origbaryfch1)*1000000,lshift);
-                                }
-				chanblk=expand(chanblk, nchans, origfch1, foff, baryval.velrel,sqchan);
-		}	
 		/*
 		else if(baryval.velrel>0 && foff>0){
 				if(origbaryfch1-nfreq1>foff){
