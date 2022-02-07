@@ -1,4 +1,7 @@
-Barycentric correction for the BL SETI data products SIGPROC filterbank files
+Post-detection barycentric correction for narrowband SETI. 
+
+Code uses TEMPO to calculate expected Doppler velocity towards the source position from the input file header. 
+It takes SIGPROC formatted filterbank file as an input and outputs barycentrically corrected SIGPROC file as well. 
 
 Requirements:
 -----------------
