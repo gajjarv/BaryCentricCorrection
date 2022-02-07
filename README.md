@@ -19,9 +19,9 @@ Use:
 
 Limitations:
 -----------------
-#1. At this point, only works with 32-bit SIGPROC filterbank file with positive foff
-#2. Negative and positive relative velocity both fixes spectra-to-spectra 
-#3. Only negative relative velocity corrects the individual spectra 
+1. At this point, only works with 32-bit SIGPROC filterbank file ~~with positive foff~~
+2. ~~Negative and positive relative velocity both fixes spectra-to-spectra ~~
+3. ~~Only negative relative velocity corrects the individual spectra ~~
  
 Testing:
 -----------------
