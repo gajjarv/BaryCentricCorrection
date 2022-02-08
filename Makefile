@@ -3,7 +3,8 @@ GC = gcc
 
 BINDIR = ./bin
 LIBDIR = ./include
-SIGPROC="/home/vgajjar/BaryCentricCorrection_sigproc/bl_sigproc/src/"
+#SIGPROC="/home/vgajjar/BaryCentricCorrection_sigproc/bl_sigproc/src/"
+SIGPROC="/Users/vishalgajjar/prog/bl_sigproc/src/"
 CFITSIO="/usr/lib/x86_64-linux-gnu/"
 GSL="/usr/local/Cellar/gsl/1.16/lib/"
 
