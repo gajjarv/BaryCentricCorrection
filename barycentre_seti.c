@@ -38,6 +38,20 @@ struct restruct {
 	double velrel;
 };
 
+void my_barycentre_help() /*includefile*/
+{
+  puts("");
+  puts("barycentre - refer a datafile to a frame at rest wrt the solar system barycentre");
+  puts("");
+  puts("usage: barycentre inputfile -{options} > outputfile");
+  puts("");
+  puts("inputfile   - the name of the filterbank/time series file");
+  puts("-mypolyco   - take user-defined polyco.bar file (def=create one)");
+  puts("-site       - override telescope ID (single char TEMPO telescope ID, i.e. -site j)");
+  puts("-verbose    - write out barycentre information to stderr (def=quiet)");
+  puts("");
+}
+
 /* subroutine to call TEMPO to calculate a polyco.bar file for barycentering */
 char *make_polycofile(char ra[],char dec[],char topo[], char site,
 			    double mjdtopo, double tsamp)
@@ -255,7 +269,7 @@ main (int argc, char *argv[])
   float *chanblk;
   double mjd, elapsed_time, barycentre_time,mjdtopostart,newtopo;
   double ras,des;
-  char ra[80], dec[80], topo[80], sra[6], sde[6], site;
+  char ra[80], dec[80], topo[80], sra[6], sde[6], site,mysite;
   char message[80], myparfile[80], line[80], key[80];
   struct POLYCO polyco;
   FILE *polycofile,*parfile;
@@ -266,7 +280,7 @@ main (int argc, char *argv[])
   //testfile=fopen("FreqShift","w");
 
   if (argc<2 || help_required(argv[1])) {
-    barycentre_help();
+    my_barycentre_help();
     exit(0);
   }
   print_version(argv[0],argv[1]);
@@ -279,11 +293,17 @@ main (int argc, char *argv[])
   output=stdout;
   //strcpy(output,argv[2]);
   strcpy(myparfile,"");
+  mysite=" ";
 
   i=2;
   while (i<argc) {
     if (strings_equal(argv[i],"-verbose")) 
       verbose=1;
+    if (strings_equal(argv[i],"-site")){
+       mysite=argv[i+1][0];
+       fprintf(stderr,"telescope_site override to %c\n",mysite);
+       i++;
+    }       
     if (strings_equal(argv[i],"-mypolyco")) 
       mypolyco=1;
     if (strings_equal(argv[i],"-myparfile")) 
@@ -314,7 +334,10 @@ main (int argc, char *argv[])
     sprintf(dec,"%02d:%02d:%s",ded,dem,sde);
     /* now call TEMPO to calculate the barycentric MJD */
     sprintf(topo,"%.12f",tstart);
-    site=tempo_site(telescope_id);
+
+    if(mysite!=" ") site = mysite;   // If telescope site is provided override telescope_id from header 
+    else site=tempo_site(telescope_id);
+    //site=tempo_site(telescope_id);
     if (verbose) 
       fprintf(stderr,"Telescope: %s TEMPO site code: %c\n",
 	      telescope_name(telescope_id),site);
