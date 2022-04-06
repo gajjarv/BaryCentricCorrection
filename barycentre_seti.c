@@ -195,12 +195,12 @@ float* squeeze(float *arr, int nchans, double fch1, double foff, double velrel,i
 	}		
    	seqfreq1 = seqfreq1+foff*1000000; // Real frquency how they will get organize in the file 
    }
-   fprintf(stderr,"squeeze by %d ",seqi);   
+   fprintf(stderr,"squeeze by %d \n",seqi);   
+   for(seqj=0;seqj<nchans;seqj++) arr[seqj] = seqchanblk[seqj];
+   free(seqchanblk);
    //These number should match 
    //fprintf(stderr,"%d %d\n",seqi,seqj-seqk);
-   //return seqi;
-   //sqchan=seqi;
-   return seqchanblk;
+   return arr;
 }
 
 /*Function to right rotate arr[] of size n by d*/
@@ -229,35 +229,39 @@ float* expand(float *arr, int nchans, double fch1, double foff, double velrel,in
    double seqfreq1,seqfreq2;
    float *seqchanblk;
    seqchanblk = (float *)malloc(nchans*sizeof(float));
-   memset(seqchanblk,0,nchans);
+   memset(seqchanblk,0.0,nchans);
    seqi=seqj=seqk=0;
    seqfreq1=(fch1*(1 + velrel))*1000000;
-   for(seqj=0;seqj<nchans;seqj++){   
+   for(seqj=0;seqj<nchans-1;seqj++){   
         seqfreq2 = ((fch1+(seqj+1)*foff)*(1 + velrel)*1000000); // subsequent channel frequency in barycentric frame
-        if((fabs(seqfreq2-seqfreq1) > 1.5*fabs(foff*1000000)) && (seqj+1<nchans)){
+        if((fabs(seqfreq2-seqfreq1) > 1.5*fabs(foff*1000000)) && (seqk<nchans-1)){
                 //fch1 = fch1+foff;
                 //If two channels are farther apart than twice chan width, use their average
   		seqchanblk[seqk] = arr[seqj];
 		seqfreq1 = seqfreq1+foff*1000000; // Real frquency how they will get organize in the file
 		seqk+=1;
-  		if(seqk<nchans)	seqchanblk[seqk] = (arr[seqj]+arr[seqj+1])/2.0;
+  		seqchanblk[seqk] = (arr[seqj]+arr[seqj+1])/2.0;
                 seqi+=1;
                 seqk+=1;
                 //seqj+=1;
         }
         else {
-                if(seqk<nchans) seqchanblk[seqk] = arr[seqj];
-                seqk+=1;
+                if(seqk<nchans-1) {
+			seqchanblk[seqk] = arr[seqj];
+	                seqk+=1;
+		}
         }
         seqfreq1 = seqfreq1+foff*1000000; // Real frquency how they will get organize in the file 
    }
-   fprintf(stderr,"expand by %d ",seqi);
+   fprintf(stderr,"expand by %d\n",seqi);
+   for(seqj=0;seqj<nchans;seqj++) arr[seqj] = seqchanblk[seqj]; //Somehow seqchanblk was not clearing and giving segflt 
+   free(seqchanblk);
    //These number should match 
-   //fprintf(stderr,"%d %d\n",seqi,seqj-seqk);
    //return seqi;
    //sqchan=seqi;
-   return seqchanblk;
+   return arr;
 } 
+
 
 
 char inpfile[80], outfile[80];
@@ -505,6 +509,7 @@ main (int argc, char *argv[])
       int rshift=0;
       int sqchan=0;
       for(i=0;i<n;i++){
+      		fprintf(stderr,"i %d\t",i);	
 	        baryval = barycentric_time(ra,dec,topo,site,mjd);
 		nfreq1 = (origfch1*(1 + baryval.velrel)); //First channel frequency of this spectra
 	        for(j=0;j<nchans;j++) fread(&chanblk[j],1,sizeof(float),input);
@@ -573,14 +578,20 @@ main (int argc, char *argv[])
 		}
 		*/	
 		else{
-			fprintf(stderr,"Positive velocity or foff negative. Not converting");
+			fprintf(stderr,"Required conditions do not match.");
 			return 0;
 		}		
 		//leftRotate(rawdata,3*i,sizeof(rawdata));
+		
+		//Just to speed up
 		for(j=0;j<nchans;j++) fwrite(&chanblk[j],1,sizeof(float),output);
+
+		//for(j=0;j<nchans;j++) free(&chanblk[j]);
+		free(chanblk);
+		chanblk = (float *)malloc(nchans*sizeof(float));
 		mjd+=tsamp/86400.0;
       }	      
-      //for(j=0;j<nchans;j++) free(chanblk[i]);
+
     }
     free(chanblk);
     free(dummy);
