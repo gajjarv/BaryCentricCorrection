@@ -430,7 +430,6 @@ main (int argc, char *argv[])
     while (i<ntim) {
       n++;
       elapsed_time+=tsamp;
-      //newtopo = mjdtopostart+elapsed_time/(86400); 
       baryval = barycentric_time(ra,dec,topo,site,mjd);
       barycentre_time+=tsamp*polyco_period(mjd,polyco);
       nfreq1 = (fch1*(1 + baryval.velrel))*1000000; //Emitted first channel frequency 
@@ -470,11 +469,7 @@ main (int argc, char *argv[])
     fprintf(stderr,"nfreq1 %.12f origbaryfch1 %.12f\n",nfreq1,origbaryfch1);
 
     if (n) {
-      //rawdata=(char *) malloc(n*nbytes_per_sample);
-      //rawdata=(unsigned char*) malloc(nchans*nbits);
-      //chanblk = (float *)malloc(nchans*sizeof(float));
       for(j=0;j<nchans;j++) chanblk[j] = 0.0;
-      //fprintf(stderr,"%d\n",sizeof(chanblk[10]));
       mjd=origtstart;
       int lshift=0;
       int rshift=0;
@@ -484,33 +479,42 @@ main (int argc, char *argv[])
 	        baryval = barycentric_time(ra,dec,topo,site,mjd);
 		nfreq1 = (origfch1*(1 + baryval.velrel)); //First channel frequency of this spectra
 	        for(j=0;j<nchans;j++) fread(&chanblk[j],1,sizeof(float),input);
+		// There are a total of eight different scenarios that we have incorporate here. 
+		// foff>0 means filterbank file has ascending order of frequency 
+		// foff<0 means filterbank file has descending order of frequency
+		// In either of these cases, the relative velocity (baryval.velrel) could be positive or negative 
 		if(baryval.velrel<0 && foff>0){
+		// Relative velocity is negative 	
 		//if(baryval.velrel<0){
 				if(nfreq1-origbaryfch1>=fabs(foff)) {
+					//Across sub-sequent time samples, emitted frequency is increasing but since data is stored from low to higher frequency, spectra need to shifted rightwards. 
 					rshift = ceil((nfreq1-origbaryfch1)/fabs(foff));
 					rightRotate(chanblk,rshift,nchans);
 					fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz right shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(nfreq1-origbaryfch1)*1000000,rshift);
 				}
 				if(origbaryfch1-nfreq1>=fabs(foff)){
+					//Across sub-sequent time samples, emitted frequency is decreasing but since data is stored from low to higher frequency, spectra need to shifted leftwards. 
 					lshift = ceil((origbaryfch1-nfreq1)/fabs(foff));
 					leftRotate(chanblk,lshift,nchans);
 					fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz left shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(nfreq1-origbaryfch1)*1000000,lshift);
 				}	
-				//sqchan=squeeze(chanblk, nchans, origfch1, foff, baryval.velrel);
-				//if(i==0) chanblk=squeeze(chanblk, nchans, origfch1, foff, baryval.velrel,sqchan);
+				// If the relative velocity is negative and frequency are order from low to high, the first channel will shift less than the last channel, hence we need to squeeze the spectra
 				chanblk=squeeze(chanblk, nchans, origfch1, foff, baryval.velrel,sqchan);
 		}
 		else if(baryval.velrel<0 && foff<0){
 				if(nfreq1-origbaryfch1>=fabs(foff)) {
+					//Across sub-sequent time samples, emitted frequency is increasing but since data is stored from high to low frequency, spectra need to shifted leftwards. 
 					lshift = ceil((nfreq1-origbaryfch1)/fabs(foff));
 					leftRotate(chanblk,lshift,nchans);
                                         fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz left shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(nfreq1-origbaryfch1)*1000000,lshift);
 				}	
 				if(origbaryfch1-nfreq1>=fabs(foff)){
+					//Across sub-sequent time samples, emitted frequency is decreasing but since data is stored from high to low frequency, spectra need to shifted rightwards.
 					rshift = ceil((origbaryfch1-nfreq1)/fabs(foff));
                                         rightRotate(chanblk,rshift,nchans);
                                         fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz right shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(origbaryfch1-nfreq1)*1000000,rshift);
 				}
+				// If the relative velocity is negative and frequency are order from low to high, the first channel will shift less than the last channel, hence we need to squeeze the spectra
 				chanblk=squeeze(chanblk, nchans, origfch1, foff, baryval.velrel,sqchan);	
 		}
 		else if(baryval.velrel>0 && foff<0){
@@ -524,6 +528,7 @@ main (int argc, char *argv[])
                                         rightRotate(chanblk,rshift,nchans);
                                         fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz right shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(origbaryfch1-nfreq1)*1000000,rshift);
                                 }
+				// If the relative velocity is positive and frequency are order from high to low, the first channel will shift more than the last channel, hence we need to expand the spectra
 				chanblk=expand(chanblk, nchans, origfch1, foff, baryval.velrel,sqchan);
 		}
 		else if(baryval.velrel>0 && foff>0){	
@@ -537,22 +542,13 @@ main (int argc, char *argv[])
                                         leftRotate(chanblk,lshift,nchans);
                                         fprintf(stderr,"At topo %5.10lf bary %5.10lf vel %1.10f freq diff  %lf Hz left shifting by %d channels \n",mjd,baryval.mjdbary,baryval.velrel,(nfreq1-origbaryfch1)*1000000,lshift);
                                 }
+				// If the relative velocity is positive and frequency are order from high to low, the first channel will shift more than the last channel, hence we need to expand the spectra
 				chanblk=expand(chanblk, nchans, origfch1, foff, baryval.velrel,sqchan);
 		}	
-		/*
-		else if(baryval.velrel>0 && foff>0){
-				if(origbaryfch1-nfreq1>foff){
-					rshift = ceil((origbaryfch1-nfreq1)/foff);	
-					rightRotate(chanblk,rshift,nchans);	
-				}
-				fprintf(stderr,"At %lf freq diff  %lf Hz right shifting by %d channels \n",baryval.mjdbary,(origbaryfch1-nfreq1)*1000000,rshift);				
-		}
-		*/	
 		else{
 			fprintf(stderr,"Required conditions do not match.");
 			return 0;
 		}		
-		//leftRotate(rawdata,3*i,sizeof(rawdata));
 		
 		//Just to speed up
 		for(j=0;j<nchans;j++) fwrite(&chanblk[j],1,sizeof(float),output);
