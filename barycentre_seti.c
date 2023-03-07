@@ -434,36 +434,6 @@ main (int argc, char *argv[])
       baryval = barycentric_time(ra,dec,topo,site,mjd);
       barycentre_time+=tsamp*polyco_period(mjd,polyco);
       nfreq1 = (fch1*(1 + baryval.velrel))*1000000; //Emitted first channel frequency 
-      /*
-      if(i==1){
-	for(j=0;j<nchans;j++){      
-	nfreq2 = ((fch1+(j+1)*foff)*(1 + baryval.velrel)*1000000); // subsequent channel frequency in barycentric frame
-	//fprintf(stderr,"%.12f\n",((fch1+j*foff) - (fch1+j*foff)/(1 + baryval.velrel))*1000000);	
-	//nfreq1 = ((fch1/(1 + baryval.velrel)+j*foff)*1000000); // Real frquency how they will get organize in the file 
-	//nfreq1 = ((fch1/(1 + baryval.velrel)+j*foff)*1000000); // Real frquency how they will get organize in the file 
-	if(foff>0.0)
-		if(baryval.velrel<0.0){
-			chandrop=1; //Channels need to be squeezed 
-			if(nfreq2-nfreq1<(foff*1000000/2.0)) {
-				//nfreq1=nfreq1+foff*1000000;
-				fch1 = fch1+foff;
-				//fprintf(testfile,"%.12f\t %.12f\n",nfreq1,nfreq2-nfreq1);
-			}	
-		}	
-	//fprintf(testfile,"nfreq1 %.12f nfreq2 %.12f foff %.12f nf2-nf1 %.12f\n",nfreq1,nfreq2,foff*1000000,nfreq2-nfreq1);
-	//if(foff<0.0)
-	//if(nfreq1-nfreq2<foff*1000000) nfreq2=nfreq2+foff*1000000;
-	//fprintf(testfile,"%.12f\t %.12f\n",nfreq1,nfreq2-nfreq1);
-	nfreq1 = nfreq1+foff*1000000; // Real frquency how they will get organize in the file 
-	}
-      	// How first frequency and center frequency change as function of time
-      	//fprintf(stderr,"%.12f %.12f %.12f %.12f\n",fch1,fch1*(1 + baryval.velrel),(fch1+nchans*foff),(fch1+nchans*foff)*(1 + baryval.velrel));
-      }	*/	
-
-      //fprintf(stderr,"%.10f %.10f\n",polyco_period(mjd,polyco),polyco);
-      //fprintf(stderr,"%d %.12f %.12f %.12f %.12f\n",i,mjd,baryval.mjdbary,barycentre_time,baryval.velrel);
-      //How first frequency and center frequency change as function of time
-      //fprintf(stderr,"%.12f %.12f %.12f %.12f\n",fch1,fch1*(1 + baryval.velrel),(fch1+nchans*foff),(fch1+nchans*foff)*(1 + baryval.velrel));
       if (elapsed_time-barycentre_time>tsamp) {
 	add=1;
 	elapsed_time-=tsamp;
@@ -491,7 +461,8 @@ main (int argc, char *argv[])
       mjd+=tsamp/86400.0;
       get_nearest_polyco(polyco_filename,mjd,&polyco);
       i++;
-    }
+    }//End of while loop
+
     chanblk = (float *)malloc(nchans*sizeof(float));
     //n=2;	
     baryval = barycentric_time(ra,dec,topo,site,origtstart);
