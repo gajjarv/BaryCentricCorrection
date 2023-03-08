@@ -57,8 +57,7 @@ Typically, barycentric corrections are introduced by adjusting the local oscilla
 
 The Doppler effect on a radio-emitting source can be stated as,
 
-f_{em} = f_{obs} \left( 1 \pm \frac{v_{rel}}{c} \right).
-
+$f_{em} = f_{obs} \left( 1 \pm \frac{v_{rel}}{c} \right)$
 
 Here, `f_{obs}` is the observed frequency, `f_{em}` is the emitted frequency, `v_{rel}` is the velocity of the source relative to the observer, and `c` is the speed of light. In this case, the Doppler effect only depends on the velocity of the source relative to the observer. For a source moving towards the observer we can consider `- v_{rel}`, while for a source moving away from the source we consider `+ v_{rel}`. For example, for the TIC 27677846 which is one of the target observed on July 15th, 2021 from both the LOFAR stations simultaneously. The expected relative velocity (`v_{rel}/c`) towards the source will be `-7.669 × 10^{-5}` and `-7.496 × 10^{-5}` causing relative shift (`f_{em} - f_{obs}`) of 11.504 kHz and 11.246 kHz for a transmitted signal at 150 MHz observed at the Sweden and Ireland stations, respectively. These are significant shifts and distinct at the two stations which needs to be corrected in order to compare this same signal observed at the two stations.
 
