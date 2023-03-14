@@ -56,7 +56,7 @@ where $f_{obs}$ is the observed frequency, $f_{em}$ is the emitted frequency (or
 
 For instance, the target TIC\,27677846 was observed on July 15th, 2021, from both the LOFAR stations simultaneously. The expected relative velocity ($v_{rel}$) towards the source was $-7.669\times10^{-5}$ and $-7.496\times10^{-5}$, causing a relative shift ($f_{em}-f_{obs}$) of +11.504\,kHz and +11.246\,kHz for a hypothetical ETI signal transmitted at a constant frequency of 150\,MHz observed at the Sweden and Ireland stations, respectively. These are significant shifts that are distinct at the two stations, and they need to be corrected to compare the same signal observed at the two stations.
 
-[Barycentric_frequency_drift.pdf](https://github.com/gajjarv/BaryCentricCorrection/blob/master/pipeline_tests/Barycentric_frequency_drift.pdf)
+![Barycentric_frequency_drift.pdf](https://github.com/gajjarv/BaryCentricCorrection/blob/master/pipeline_tests/Barycentric_frequency_drift.pdf)
 
 In order to accurately measure the precise emitted frequency and arrival time of radio signals and compensate for the relative motion caused by the Earth's movement, barycentric correction is a crucial technique. Pulsar timing, for example, requires barycentric correction to accurately compare observations taken at different epochs and telescopes. Although few narrowband SETI surveys in the past attempted to compare their observations across different epochs and telescopes, barycentric correction is imperative for simultaneous observations.
 
