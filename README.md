@@ -80,5 +80,6 @@ As given in Equation \ref{eq:doppler}, the Doppler frequency shifts are frequenc
 
 ##Pipeline outline
 
+![Pipeline output](https://github.com/gajjarv/BaryCentricCorrection/blob/master/pipeline_tests/code_outline.png)
 
-
+The plot depicts the Doppler drift of a narrowband signal in the topocentric observing frame at four different observing epochs. Simulated waterfalls with narrowband signals observed from the Irish LOFAR station towards the direction of TIC\,27677846 are shown for different times of the year in blue. The expected sign and direction of change of the relative velocity are labeled at the top of each plot. It is assumed that a hypothetical narrowband ETI signal is transmitted at a constant frequency of 1420\,MHz (with zero drift rate). As shown, the same signal is observed at different frequencies and drift rates depending on the sign and direction of change of the relative velocity at different epochs of observations. For instance, in the first panel, the relative velocity is positive and increases with observing time. Therefore, the observing frequency has been shifted to a lower frequency (as described by Equation \ref{eq:doppler}), and it continues to shift to even lower frequencies with time.
