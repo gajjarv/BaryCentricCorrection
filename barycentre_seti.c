@@ -318,7 +318,7 @@ main (int argc, char *argv[])
   if ((headersize=read_header(input))) {
 
     /* calculate centre frequency for use in TEMPO files */
-    fcent=fch1+(double)(nchans/2)*foff;
+    fcent=fch1+(double)((nchans-1)/2.0)*foff;
     float origfch1=fch1;
     /* parse the header parameters for RA */
     angle_split(src_raj,&rah,&ram,&ras);
