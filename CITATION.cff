@@ -1,1 +1,10 @@
-If you use this code, cite Johnson et al. 2023
+cff-version: 1.1.0
+message: "If you use this software, please cite it as below."
+authors:
+  - family-names: Gajjar
+    given-names: Vishal
+    orcid: https://orcid.org/0000-0002-8604-106X
+title: Post-detection barycentric correction
+version: Published
+date-released: 2023-08-28
+            
