@@ -195,7 +195,7 @@ float* squeeze(float *arr, int nchans, double fch1, double foff, double velrel,i
 	}		
    	seqfreq1 = seqfreq1+foff*1000000; // Real frquency how they will get organize in the file 
    }
-   fprintf(stderr,"squeeze by %d \n",seqi);   
+   fprintf(stderr,"squeezed by %d \n",seqi);   
    for(seqj=0;seqj<nchans;seqj++) arr[seqj] = seqchanblk[seqj];
    free(seqchanblk);
    //These number should match 
@@ -387,6 +387,11 @@ main (int argc, char *argv[])
     /* write out header with barycentric MJD if required */
     send_string("HEADER_START");
     send_int("telescope_id",telescope_id); 
+      send_int("telescope_id",telescope_id);
+    if (!strings_equal(source_name,"")) {
+    send_string("source_name");
+    send_string(source_name);
+    }
     send_int("machine_id",machine_id);
     send_coords(src_raj,src_dej,az_start,za_start);
     send_int("data_type",data_type);
